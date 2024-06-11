@@ -1,6 +1,7 @@
 package com.example.profitsoftunit5.service;
 
 import com.example.profitsoftunit5.ProfitsoftUnit5Application;
+import com.example.profitsoftunit5.listener.EmailListener;
 import com.example.profitsoftunit5.model.entity.Email;
 import com.example.profitsoftunit5.repository.EmailRepository;
 import com.example.profitsoftunit5.testcontainers.TestElasticConfig;
@@ -31,6 +32,9 @@ public class EmailServiceTest {
 
     @MockBean
     private JavaMailSender javaMailSender;
+
+    @MockBean
+    private EmailListener emailListener;
 
     @Autowired
     private EmailRepository emailRepository;
