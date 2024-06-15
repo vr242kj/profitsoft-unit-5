@@ -20,7 +20,7 @@ public class FailedEmailService {
         this.emailService = emailService;
     }
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(cron = "${scheduler.retryFailedEmails.cron}")
     public void retryFailedEmails() {
         List<Email> failedEmails = emailRepository.findByStatus("FAILED");
         failedEmails.forEach(emailService::sendEmail);

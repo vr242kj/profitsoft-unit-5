@@ -1,8 +1,10 @@
 version: "3.9"
 
 services:
-  email-service:
-    build: .
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
     env_file:
       - ./.env
     ports:
@@ -12,15 +14,47 @@ services:
       - SPRING_MAIL_PORT:${MAIL_PORT}
       - SPRING_MAIL_USERNAME:${MAIL_USERNAME}
       - SPRING_MAIL_PASSWORD:${MAIL_PASSWORD}
-      - SPRING_ELASTICSEARCH_URIS=elasticsearch:9200
     depends_on:
       - elasticsearch
       - kafka
-#      elasticsearch:
-#        condition: service_healthy
+      - producer
     restart: on-failure
     networks:
       - my-network
+
+  producer:
+    image: xnenonx/producer:latest
+    ports:
+      - "8181:8181"
+    restart: on-failure
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/social_media
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: Olimp123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - my-network
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Olimp123
+      - POSTGRES_DB=social_media
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - my-network
+
 
   elasticsearch:
     image: elasticsearch:8.6.1
@@ -33,11 +67,6 @@ services:
       - ./data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
-#    healthcheck:
-#      test: curl -s http://elasticsearch:9200 >/dev/null || exit 1
-#      interval: 30s
-#      timeout: 10s
-#      retries: 50
     networks:
       - my-network
 
@@ -69,7 +98,7 @@ services:
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:

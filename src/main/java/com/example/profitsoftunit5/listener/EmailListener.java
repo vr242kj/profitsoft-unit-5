@@ -12,7 +12,7 @@ public class EmailListener {
         this.emailService = emailService;
     }
 
-    @KafkaListener(topics = "email-topic", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "${kafka.topic.email}", containerFactory = "kafkaListenerContainerFactory")
     public void listenEmail(String recipientEmail) {
         emailService.createEmail(recipientEmail);
     }
